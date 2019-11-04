@@ -33,7 +33,7 @@ static ShaderProgramSource ParseShader(const std::string& filepath)
 			else if (line.find("fragment") != std::string::npos)
 				type = ShaderType::FRAGMENT;
 		}
-		
+
 		else
 		{
 			ss[(int)type] << line << std::endl;
