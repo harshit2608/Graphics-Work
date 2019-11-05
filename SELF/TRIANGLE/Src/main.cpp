@@ -156,7 +156,12 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	
+	// optional: de-allocate all resources once they've outlived their purpose:
+	// ------------------------------------------------------------------------
+    	glDeleteVertexArrays(1, &VAO);
+    	glDeleteBuffers(1, &VBO);
+	
 	glfwTerminate();
 	return 0;
 }
