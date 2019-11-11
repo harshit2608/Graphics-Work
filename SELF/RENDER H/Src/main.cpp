@@ -88,3 +88,99 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 // shader accessing code ends
 // --------------------------
 
+// functions
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
+// settings
+const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 800;
+
+int main()
+{
+	// glfw: initialize and configure
+	// ------------------------------
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLTRUE); //Uncomment this line to use for MAC OS
+#endif // __APPLE__
+
+	// glfw window creation
+	// --------------------
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "RENDER H", NULL, NULL);
+	if (window == NULL)
+	{
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	// glad: load all OpenGL function pointers
+	// ---------------------------------------
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to load glad!" << std::endl;
+		return -1;
+	}
+
+	ShaderProgramSource  source = ParseShader("res/shaders/Basic.shader");
+	unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+	glUseProgram(shader);
+
+	// set up vertex data (and buffer(s)) and configure vertex attributes
+	// ------------------------------------------------------------------
+	float firstTriangle[] =
+	{
+		-0.3f,  0.8f, 0.0f,  //	0
+		-0.3f, -0.8f, 0.0f,  // 1
+		-0.5f, -0.8f, 0.0f,  // 2
+		-0.5f,  0.8f, 0.0f,  // 3
+
+		 0.5f,  0.8f, 0.0f,	 // 4
+		 0.5f, -0.8f, 0.0f,  // 5
+		 0.3f, -0.8f, 0.0f,  // 6
+		 0.3f,  0.8f, 0.0f,	 // 7
+
+		 0.3f,  0.12f, 0.0f,  // 8
+		 0.3f, -0.12f, 0.0f,  // 9
+		-0.3f, -0.12f, 0.0f,  // 10
+		-0.3f,  0.12f, 0.0f   // 11
+	};
+	unsigned int indices[] =
+	{  // note that we start from 0!
+		0, 1, 3,   // first Triangle
+		1, 2, 3,   // second Triangle
+
+		4, 5, 6,   // third Triangle
+		4, 7, 6,   // fourth Triangle
+
+		8, 9, 10,  // fith Triangle
+		8, 11, 10  // sixth Triangle
+	};
+
+	unsigned int VBO, VAO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	// first triangle setup
+	// --------------------
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW);
+
+	unsigned int IBO;
+	glGenBuffers(1, &IBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
