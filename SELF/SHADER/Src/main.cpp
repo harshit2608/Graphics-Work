@@ -15,8 +15,8 @@ const char* vertexShaderSource =
 "out vec3 ourColor;\n"
 "void main()\n"
 "{\n"
-"gl_Position =vec4 (aPos,1.0);\n"
-"ourColor = aColor;\n"
+	"gl_Position =vec4 (aPos,1.0);\n"
+	"ourColor = aColor;\n"
 "}\0";
 
 const char* fragmentShaderSource =
@@ -25,7 +25,7 @@ const char* fragmentShaderSource =
 "in vec3 ourColor;\n"
 "void main()\n"
 "{\n"
-"FragColor=vec4(ourColor,1.0f);\n"
+	"FragColor=vec4(ourColor,1.0f);\n"
 "}\n\0";
 
 int main()
@@ -45,6 +45,41 @@ int main()
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
+	int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+	glCompileShader(vertexShader);
+
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+		std::cout << "VERTEX SHADER COMPILATION ERROR :: " << std::endl;
+		std::cout << infoLog << std::endl;
+	}
+
+	int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "FRAGMENT SHADER COMPILATION ERROR :: " << std::endl;
+		std::cout << infoLog << std::endl;
 	}
 
 	return 0;
