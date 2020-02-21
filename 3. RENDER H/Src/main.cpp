@@ -98,6 +98,11 @@ const unsigned int SCR_WIDTH = 800;
 
 int main()
 {
+	std::cout << "========COMMAND LIST========" << std::endl;
+	std::cout << "Press 1. Wireframe mode" << std::endl;
+	std::cout << "Press 2. Solid mode" << std::endl;
+	std::cout << "Press 3. To hide the mesh" << std::endl;
+
 	// glfw: initialize and configure
 	// ------------------------------
 	glfwInit();
