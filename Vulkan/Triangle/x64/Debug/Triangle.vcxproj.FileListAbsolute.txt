@@ -1,0 +1,2 @@
+E:\PROJECTS\Github Work\OPEN-GL\Vulkan\Triangle\x64\Debug\Triangle.exe
+E:\PROJECTS\Github Work\OPEN-GL\Vulkan\Triangle\x64\Debug\Triangle.pdb
