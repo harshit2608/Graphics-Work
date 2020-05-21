@@ -1,2 +1,8 @@
 ﻿  Application.cpp
+  IndexBuffer.cpp
+  Renderer.cpp
+  Shader.cpp
+  VertexArray.cpp
+  VertexBuffer.cpp
+  Generating Code...
   OpenGL.vcxproj -> E:\PROJECTS\Github Work\OPEN-GL\OpenGL\Cherno OpenGl\OpenGL\Debug\OpenGL.exe
