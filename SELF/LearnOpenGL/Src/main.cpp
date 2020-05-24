@@ -1,60 +1,26 @@
 #include "Shader.h"
 
 #define VAO 1
+#define VBO 2
+
+float cameraX, cameraY, cameraZ;
+float cubeLocX, cubeLocY, cubeLocZ;
 
 unsigned int renderingProgram;
 unsigned int vao[VAO];
+unsigned int vbo[VBO];
+unsigned int mvLoc, projLoc;
+float aspect;
+glm::mat4 pMat, vMat, mMat, mvMat;
 
-float x = 0.0f;
-float inc = 0.01f;
-
+void setupVertices(void);
+void init(GLFWwindow* window);
 void processInput(GLFWwindow* window);
 void display(GLFWwindow* window, double currentTime);
 
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
-
-
-/*
-static int CompileShader(unsigned int type, const std::string& source)
-{
-	unsigned int id = glCreateShader(type);
-	const char* src = source.c_str();
-	glShaderSource(id, 1, &src, nullptr);
-	glCompileShader(id);
-
-	int result;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-	if (result == GL_FALSE)
-	{
-		int length;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char* message = ((char*)alloca(length * sizeof(char)));
-		glGetShaderInfoLog(id, length, &length, message);
-		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!!" << std::endl;
-		std::cout << message << std::endl;
-		glDeleteShader(id);
-		return 0;
-	}
-
-	return id;
-}
-
-static int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
-{
-	unsigned int program = glCreateProgram();
-	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-	glAttachShader(program, vs);
-	glAttachShader(program, fs);
-	glLinkProgram(program);
-	glValidateProgram(program);
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-
-	return program;
-}*/
+int width, height;
 
 int main()
 {
@@ -76,26 +42,96 @@ int main()
 	}
 	glfwMakeContextCurrent(window);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	if (glewInit() != GLEW_OK)
 	{
-		std::cout << "Failed to load glad!" << std::endl;
+		std::cout << "Failed to initialize GLEW" << std::endl;
 		return -1;
 	}
 
-	renderingProgram = Shader::createShaderProgram("Res/Shaders/Vertex.glsl", "Res/Shaders/Fragment.glsl");
-	glGenVertexArrays(VAO, vao);
-	glBindVertexArray(vao[0]);
+	/*if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to load glad!" << std::endl;
+		return -1;
+	}*/
+
+	init(window);
 
 	while (!glfwWindowShouldClose(window))
 	{
-		processInput(window);
 		display(window, glfwGetTime());
+		processInput(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
+	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
+}
+
+void setupVertices(void)
+{
+	float vertexPositions[108] = {
+		-1.0f,  1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f, -1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f, -1.0f,  1.0f, -1.0f, -1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f, -1.0f
+	};
+	glGenVertexArrays(1, vao);
+	glBindVertexArray(vao[0]);
+	glGenBuffers(VBO, vbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+}
+
+void init(GLFWwindow* window)
+{
+	renderingProgram = Shader::createShaderProgram("Res/Shaders/Vertex.glsl", "Res/Shaders/Fragment.glsl");
+	cameraX = 0.0f;
+	cameraY = 0.0f;
+	cameraZ = 8.0f;
+	cubeLocX = 0.0f;
+	cubeLocY = -2.0f;
+	cubeLocZ = 0.0f;
+	setupVertices();
+}
+
+void display(GLFWwindow* window, double currentTime)
+{
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(1.0f, 0.5f, 0.25f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glUseProgram(renderingProgram);
+	mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+	projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+
+	glfwGetFramebufferSize(window, &width, &height);
+	aspect = (float)width / (float)height;
+	pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);	//1.0472 = 60 degrees
+
+	vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-cameraX, -cameraY, -cameraZ));
+	mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubeLocX, cubeLocY, cubeLocZ));
+	mvMat = vMat * mMat;
+	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void processInput(GLFWwindow* window)
@@ -116,25 +152,4 @@ void processInput(GLFWwindow* window)
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 	}
-}
-
-void display(GLFWwindow* window, double currentTime)
-{
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glClearColor(1.0f, 0.5f, 0.25f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glUseProgram(renderingProgram);
-	x = x + inc;
-	if (x > 1.0f)
-	{
-		inc = -0.01f;
-	}
-	if (x < -1.0f)
-	{
-		inc = 0.01f;
-	}
-	unsigned int offsetLoc = glGetUniformLocation(renderingProgram, "offset");
-	glProgramUniform1f(renderingProgram, offsetLoc, x);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
